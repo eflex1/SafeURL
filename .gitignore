@@ -1,0 +1,11 @@
+# Node
+safeurl-backend/node_modules/
+safeurl-backend/.env
+
+# Machine Learning
+safeurl-ml/malicious_phish.csv
+safeurl-ml/__pycache__/
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db

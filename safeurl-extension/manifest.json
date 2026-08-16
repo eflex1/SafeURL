@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "SafeURL",
+  "version": "1.0",
+  "description": "Real-time AI-powered phishing URL detection.",
+  "permissions": [
+    "webNavigation",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SafeURL Status"
+  }
+}
