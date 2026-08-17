@@ -27,16 +27,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Temporary function: We will replace this with a real fetch() call to our Node.js API in Phase 2
-  // Real fetch call to our Node.js API
   async function analyzeUrl(url) {
     try {
-      const response = await fetch("http://localhost:3000/predict", {
-        method: "POST",
+      const response = await fetch('https://safeurl-backend-api.onrender.com/predict', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ url: url }),
+        body: JSON.stringify({ url: url })
       });
 
       const data = await response.json();
