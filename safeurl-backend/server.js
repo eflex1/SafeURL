@@ -44,7 +44,7 @@ app.post('/predict', async (req, res) => {
         // Dynamically import node-fetch (required for newer versions of fetch in Node)
         const fetch = (await import('node-fetch')).default;
         
-        const mlResponse = await fetch('http://127.0.0.1:5000/analyze', {
+        const mlResponse = await fetch('https://safeurl-ml-api.onrender.com/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url: url })
