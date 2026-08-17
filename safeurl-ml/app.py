@@ -1,26 +1,29 @@
-from flask import Flask, request, jsonify
+import os
 import pickle
 import re
 from urllib.parse import urlparse
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Load our newly trained model
+# Locate phishing_model.pkl relative to this file's directory
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'phishing_model.pkl')
+
+model = None
 try:
-    with open('phishing_model.pkl', 'rb') as f:
+    with open(MODEL_PATH, 'rb') as f:
         model = pickle.load(f)
-except FileNotFoundError:
-    print("Error: Model file not found.")
+    print("Model loaded successfully from:", MODEL_PATH)
+except Exception as e:
+    print(f"Error loading model from {MODEL_PATH}: {e}")
 
 def extract_features(url):
     if not isinstance(url, str):
         url = str(url)
     
-    # CLEANING
     url = url.lower()
     url = re.sub(r'^https?://', '', url)
     url = re.sub(r'^www\.', '', url)
-    
     url_length = len(url)
     
     try:
@@ -51,25 +54,37 @@ def extract_features(url):
         path_length = 0
 
     return [[url_length, dot_count, hyphen_count, has_digits, 
-            suspicious_keywords_count, is_ip, subdomain_count, path_length]]
+             suspicious_keywords_count, is_ip, subdomain_count, path_length]]
+
+@app.route('/', methods=['GET'])
+def health_check():
+    return jsonify({
+        "status": "online",
+        "model_loaded": model is not None
+    }), 200
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    data = request.get_json()
+    if model is None:
+        return jsonify({"error": "ML Model is not loaded on server."}), 500
+
+    data = request.get_json(silent=True) or {}
     url = data.get('url')
 
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
-    features = extract_features(url)
-    
-    probabilities = model.predict_proba(features)[0]
-    phishing_prob = float(probabilities[1])
+    try:
+        features = extract_features(url)
+        probabilities = model.predict_proba(features)[0]
+        phishing_prob = float(probabilities[1])
 
-    return jsonify({
-        "url": url,
-        "phishing_probability": phishing_prob
-    })
+        return jsonify({
+            "url": url,
+            "phishing_probability": phishing_prob
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

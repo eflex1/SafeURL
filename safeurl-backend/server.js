@@ -7,34 +7,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MySQL Database Connection Pool
-// Upgraded MySQL Database Connection Pool for Aiven Cloud
+// Aiven MySQL connection pool with SSL support
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 27693, 
+    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 27693,
     ssl: {
-        rejectUnauthorized: true 
+        rejectUnauthorized: false
     },
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit: 5,
     queueLimit: 0
 });
 
-// Helper function to extract domain from URL
 function extractDomain(url) {
     try {
-        const { hostname } = new URL(url);
+        const { hostname } = new URL(url.startsWith('http') ? url : 'http://' + url);
         return hostname;
     } catch (e) {
         return "unknown";
     }
 }
 
-// POST /predict - The endpoint our Chrome Extension will call
-// POST /predict - The endpoint our Chrome Extension will call
+app.get('/', (req, res) => {
+    res.json({ status: "SafeURL Gateway Online" });
+});
+
 app.post('/predict', async (req, res) => {
     const { url } = req.body;
 
@@ -45,8 +45,6 @@ app.post('/predict', async (req, res) => {
     const domain = extractDomain(url);
 
     try {
-        // --- NEW CODE: Call the Python ML Service ---
-        // Dynamically import node-fetch (required for newer versions of fetch in Node)
         const fetch = (await import('node-fetch')).default;
         
         const mlResponse = await fetch('https://safeurl-ml-api.onrender.com/analyze', {
@@ -55,9 +53,14 @@ app.post('/predict', async (req, res) => {
             body: JSON.stringify({ url: url })
         });
 
+        if (!mlResponse.ok) {
+            const errorText = await mlResponse.text();
+            console.error(`Python ML service returned status ${mlResponse.status}:`, errorText);
+            return res.status(502).json({ error: "ML service error", details: errorText });
+        }
+
         const mlData = await mlResponse.json();
         const mlProbability = mlData.phishing_probability;
-        // ---------------------------------------------
 
         let prediction = "LEGITIMATE";
         let risk_level = "LOW";
@@ -70,18 +73,17 @@ app.post('/predict', async (req, res) => {
             risk_level = "MEDIUM";
         }
 
-        // Log the scan to MySQL
+        // Log to Aiven MySQL
         try {
-            const [result] = await pool.execute(
+            await pool.execute(
                 'INSERT INTO scan_logs (url, domain, prediction, probability) VALUES (?, ?, ?, ?)',
                 [url, domain, prediction, mlProbability]
             );
             console.log(`Logged scan for ${domain}: ${prediction} (${(mlProbability * 100).toFixed(1)}%)`);
-        } catch (error) {
-            console.error('Database logging failed:', error);
+        } catch (dbError) {
+            console.error('Database logging failed:', dbError.message);
         }
 
-        // Return the payload to the Chrome extension
         res.json({
             is_phishing: prediction === "PHISHING",
             probability: mlProbability,
@@ -91,11 +93,11 @@ app.post('/predict', async (req, res) => {
 
     } catch (error) {
         console.error("Error communicating with Python ML Service:", error);
-        res.status(500).json({ error: "Machine Learning service is offline." });
+        res.status(500).json({ error: "Machine Learning service unavailable." });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`SafeURL API Gateway running on http://localhost:${PORT}`);
+    console.log(`SafeURL API Gateway running on port ${PORT}`);
 });

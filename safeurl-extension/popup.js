@@ -38,13 +38,20 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       const data = await response.json();
+      
+      if (response.ok && data.probability !== undefined && !isNaN(data.probability)) {
+        const score = Math.round(data.probability * 100);
+        updateUI(score, data.status);
+      } else {
+        console.warn("API returned error response:", data);
+        statusTextEl.textContent = data.error || "WAKING UP SERVER...";
+        riskScoreEl.textContent = "--%";
+        statusBoxEl.style.borderTopColor = "#f1c40f";
+      }
 
-      // Convert decimal probability to percentage
-      const score = Math.round(data.probability * 100);
-      updateUI(score, data.status);
     } catch (error) {
       console.error("Error connecting to SafeURL API:", error);
-      statusTextEl.textContent = "API OFFLINE";
+      statusTextEl.textContent = "OFFLINE";
       riskScoreEl.textContent = "ERR";
     }
   }
