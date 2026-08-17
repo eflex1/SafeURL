@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SafeURL — AI-Powered Phishing Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0f19;
+        --card-bg: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #2563eb;
+        --accent-glow: rgba(37, 99, 235, 0.35);
+        --text: #f3f4f6;
+        --text-muted: #9ca3af;
+        --green: #10b981;
+        --red: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", sans-serif;
+      }
+
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      /* Background glow effect */
+      .glow-bg {
+        position: absolute;
+        top: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 400px;
+        background: radial-gradient(
+          circle,
+          var(--accent-glow) 0%,
+          rgba(0, 0, 0, 0) 70%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Navbar */
+      nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 32px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .logo {
+        font-size: 1.4rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .logo span {
+        color: var(--accent);
+      }
+
+      .badge {
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(96, 165, 250, 0.3);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      /* Hero Section */
+      .hero {
+        text-align: center;
+        padding: 90px 0 60px;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.4rem, 5vw, 3.8rem);
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        line-height: 1.15;
+        margin-bottom: 20px;
+      }
+
+      .hero h1 span {
+        background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .hero p {
+        font-size: 1.15rem;
+        color: var(--text-muted);
+        max-width: 650px;
+        margin: 0 auto 36px;
+      }
+
+      .cta-group {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 4px 20px var(--accent-glow);
+        border: 1px solid #3b82f6;
+      }
+
+      .btn-primary:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: var(--card-bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Architecture Grid */
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin: 80px 0;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 30px;
+        backdrop-filter: blur(8px);
+        transition: border-color 0.2s ease;
+      }
+
+      .card:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .card-icon {
+        font-size: 1.8rem;
+        margin-bottom: 16px;
+        display: inline-block;
+      }
+
+      .card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+
+      .card p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+      }
+
+      /* Installation Steps */
+      .install-box {
+        background: rgba(37, 99, 235, 0.05);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        border-radius: 12px;
+        padding: 40px;
+        margin-bottom: 80px;
+      }
+
+      .install-box h2 {
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .steps-list {
+        list-style-position: inside;
+        color: var(--text-muted);
+        font-size: 0.98rem;
+        max-width: 600px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .steps-list li strong {
+        color: var(--text);
+      }
+
+      footer {
+        text-align: center;
+        padding: 40px 0;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        border-top: 1px solid var(--border);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow-bg"></div>
+
+    <div class="container">
+      <nav>
+        <div class="logo">Safe<span>URL</span></div>
+        <div class="badge">v1.0 Production</div>
+      </nav>
+
+      <header class="hero">
+        <h1>
+          Real-Time Phishing Detection <br /><span
+            >Powered by Machine Learning</span
+          >
+        </h1>
+        <p>
+          SafeURL intercepts browser navigation, extracts lexical URL features,
+          and applies Random Forest classification to block malicious web
+          threats instantly.
+        </p>
+        <div class="cta-group">
+          <a href="#install" class="btn btn-primary">Install Extension</a>
+          <a
+            href="https://github.com/eflex1/SafeURL"
+            target="_blank"
+            class="btn btn-secondary"
+            >View GitHub</a
+          >
+        </div>
+      </header>
+
+      <section class="features">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>Lexical Feature Engine</h3>
+          <p>
+            Extracts structural indicators including domain entropy, digit
+            count, hyphen patterns, and suspicious keywords without scanning
+            page body contents.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h3>Random Forest AI</h3>
+          <p>
+            Trained across over 650,000 verified malicious and benign domains to
+            deliver instantaneous risk probability scoring.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>Cloud Telemetry</h3>
+          <p>
+            Every scan transaction is logged to an enterprise MySQL cloud
+            cluster for threat auditing and ongoing model retraining.
+          </p>
+        </div>
+      </section>
+
+      <section class="install-box" id="install">
+        <h2>Getting Started with SafeURL</h2>
+        <ol class="steps-list">
+          <li>
+            <strong>Download/Clone:</strong> Clone the repository from GitHub to
+            your computer.
+          </li>
+          <li>
+            <strong>Open Chrome Extensions:</strong> Navigate to
+            <code>chrome://extensions</code> in your address bar.
+          </li>
+          <li>
+            <strong>Enable Developer Mode:</strong> Toggle the switch in the top
+            right corner.
+          </li>
+          <li>
+            <strong>Load Unpacked:</strong> Click
+            <strong>Load unpacked</strong> and select the
+            <code>safeurl-extension</code> folder.
+          </li>
+        </ol>
+      </section>
+
+      <footer>
+        <p>© 2026 SafeURL Project — Intelligent Cybersecurity Architecture</p>
+      </footer>
+    </div>
+  </body>
+</html>
